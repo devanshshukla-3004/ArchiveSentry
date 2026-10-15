@@ -1,73 +1,74 @@
-# HashVault — File Integrity Verification
+# ArchiveSentry — Archive Security Inspector
 
-**Day 12/100 · 100 Days, 100 Cybersecurity Projects**
+**Day 12/100 · 100 Days • 100 Cybersecurity Projects**
 
-HashVault is a lightweight, offline-first Python CLI that creates SHA-256 manifests and compares a directory against a trusted baseline. It reports files that are **added, modified, or deleted** and exports JSON reports.
+ArchiveSentry is a read-only Python utility that inspects ZIP and TAR-family archives for potentially dangerous archive metadata before extraction. It flags path traversal, absolute/drive-qualified member paths, executable or script extensions, double extensions, suspicious ZIP compression ratios, encrypted ZIP entries, and TAR link entries.
+
+## Why this project?
+
+Archives are common delivery formats for software, documents, and evidence. Before extracting an untrusted archive, a defender can review its member paths and metadata for common warning signs.
 
 ## Features
-- SHA-256 hashing using Python's standard library
-- Deterministic baseline manifest
-- Added / modified / deleted file detection
-- JSON verification reports and meaningful exit codes
-- Repeatable exclusions by file or directory name
-- Skips symbolic links and does not follow symlinked directories
-- Automated tests for clean, modified, added, and deleted files
 
-## Requirements
-- Python 3.10+
-- No third-party runtime dependencies
+- ZIP, TAR, TAR.GZ and TGZ metadata inspection
+- Path traversal and absolute-path indicators
+- Executable/script extension and double-extension heuristics
+- ZIP declared size/compression-ratio checks
+- Encrypted ZIP entry and TAR link indicators
+- Member-count limit to bound metadata processing
+- Terminal findings with severity and evidence
+- Optional JSON report
+- No extraction, execution, network requests, or third-party runtime dependencies
+- Automated unit tests
 
 ## Quick start
 
-### 1. Create a baseline
+Python 3.10+ recommended.
 
-    python hashvault.py baseline ./samples -o ./reports/baseline.json
+```bash
+git clone https://github.com/devanshshukla-3004/HashVault.git
+cd HashVault
+python -m unittest discover -s tests -v
+python hashvault.py samples/demo.zip --json reports/archive-report.json
+```
 
-### 2. Verify integrity
+The repository slug currently remains HashVault; rename the GitHub repository to **ArchiveSentry** in Settings → General → Repository name when ready. GitHub normally redirects the old URL after a rename.
 
-    python hashvault.py verify ./samples -b ./reports/baseline.json -o ./reports/verification.json
+## Usage
 
-### 3. Detect changes
-Modify or add a file under samples/, then run the verification command again. HashVault will print CHANGED and list the differences. Verification exits with 0 for a clean baseline, 1 when files changed, and 2 for invalid input, baseline, or filesystem errors.
+```bash
+python hashvault.py path/to/untrusted.zip
+python hashvault.py path/to/archive.tar.gz --json reports/inspection.json
+python hashvault.py path/to/archive.zip --max-members 2000
+```
 
-### Exclusions
+Exit codes: `0` no findings; `1` findings detected; `2` invalid input or inspection error.
 
-    python hashvault.py baseline ./target --exclude .git --exclude __pycache__
+## Detection logic and limitations
 
-Exclusions match a file or directory name wherever it appears beneath the target.
+- **PATH_TRAVERSAL / ABSOLUTE_PATH:** member names contain parent traversal, absolute paths, or drive-qualified paths.
+- **EXECUTABLE_OR_SCRIPT / DOUBLE_EXTENSION:** file extensions may deserve review; benign installers and scripts can also trigger.
+- **HIGH_COMPRESSION_RATIO:** compares declared ZIP sizes; this is a heuristic, not a decompression-bomb verdict.
+- **ENCRYPTED_MEMBER / LINK_MEMBER:** flags metadata that can complicate review.
 
-### Run tests
+ArchiveSentry does **not** extract or execute archive members and does not scan file contents for malware. Metadata may be forged, and safe-looking names do not guarantee safety. Review findings in context and use an isolated environment for further analysis.
 
-    python -m unittest discover -s tests -v
+## Project layout
 
-## Example report
-The following values are illustrative, not output from a live system:
+```text
+HashVault/
+├── hashvault.py
+├── tests/
+│   └── test_hashvault.py
+├── samples/
+├── reports/
+├── requirements.txt
+└── README.md
+```
 
-    {
-      "format": "HashVault report v1",
-      "summary": {"checked": 2, "added": 1, "deleted": 0, "modified": 1, "status": "CHANGED"},
-      "added": ["new.txt"],
-      "deleted": [],
-      "modified": ["notes.txt"]
-    }
+## Security use
 
-## Security notes and limitations
-- **Protect the baseline.** A hash only detects changes relative to a trustworthy baseline. If an attacker can alter both the files and the manifest, they may hide tampering. Store the baseline somewhere access-controlled or sign it.
-- SHA-256 provides integrity comparison, not confidentiality or proof of who changed a file.
-- HashVault is a local, read-only scanner. It does not remediate files, monitor continuously, or contact external services.
-- Permission errors are reported as warnings on stderr; inaccessible files may be absent from the resulting scan, so review warnings before trusting a report.
-- This is a learning project, not a certified compliance or forensic tool.
+Use only on archives you are authorized to inspect. Keep the original archive unchanged if it may be evidence, and preserve its source and acquisition details separately.
 
-## Project structure
-
-    HashVault/
-    ├── hashvault.py
-    ├── tests/test_hashvault.py
-    ├── samples/
-    ├── reports/
-    ├── requirements.txt
-    ├── .gitignore
-    └── LICENSE
-
-## License
-MIT
+**Author:** Devansh Shukla  
+**Challenge:** Day 12/100
