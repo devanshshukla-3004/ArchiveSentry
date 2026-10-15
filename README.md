@@ -29,7 +29,7 @@ Python 3.10+ recommended.
 git clone https://github.com/devanshshukla-3004/HashVault.git
 cd HashVault
 python -m unittest discover -s tests -v
-python hashvault.py samples/demo.zip --json reports/archive-report.json
+python archivesentry.py samples/demo.zip --json reports/archive-report.json
 ```
 
 The repository slug currently remains HashVault; rename the GitHub repository to **ArchiveSentry** in Settings → General → Repository name when ready. GitHub normally redirects the old URL after a rename.
@@ -37,9 +37,9 @@ The repository slug currently remains HashVault; rename the GitHub repository to
 ## Usage
 
 ```bash
-python hashvault.py path/to/untrusted.zip
-python hashvault.py path/to/archive.tar.gz --json reports/inspection.json
-python hashvault.py path/to/archive.zip --max-members 2000
+python archivesentry.py path/to/untrusted.zip
+python archivesentry.py path/to/archive.tar.gz --json reports/inspection.json
+python archivesentry.py path/to/archive.zip --max-members 2000
 ```
 
 Exit codes: `0` no findings; `1` findings detected; `2` invalid input or inspection error.
@@ -56,10 +56,10 @@ ArchiveSentry does **not** extract or execute archive members and does not scan 
 ## Project layout
 
 ```text
-HashVault/
-├── hashvault.py
+ArchiveSentry/
+├── archivesentry.py
 ├── tests/
-│   └── test_hashvault.py
+│   └── test_archivesentry.py
 ├── samples/
 ├── reports/
 ├── requirements.txt
